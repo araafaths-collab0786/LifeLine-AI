@@ -58,7 +58,7 @@ export async function explainAgentDecision(
   input: ExplainAgentDecisionInput
 ): Promise<ExplainAgentDecisionOutput> {
   let attempts = 0;
-  const maxAttempts = 5;
+  const maxAttempts = 6;
 
   while (attempts < maxAttempts) {
     try {
@@ -76,13 +76,14 @@ export async function explainAgentDecision(
         errorMessage.includes('429') || 
         errorMessage.includes('RESOURCE_EXHAUSTED') ||
         errorMessage.includes('high demand') ||
-        errorMessage.includes('quota');
+        errorMessage.includes('quota') ||
+        errorMessage.includes('limit');
 
       if (attempts >= maxAttempts || !isRetryable) {
         throw error;
       }
       
-      const delay = Math.pow(2, attempts) * 1000;
+      const delay = Math.pow(2, attempts) * 1500;
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }

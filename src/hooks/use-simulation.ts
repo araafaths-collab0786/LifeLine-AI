@@ -51,23 +51,47 @@ export function useSimulation() {
     }
   }, [env, isDone, toast]);
 
+  // Baseline Policy Heuristic for automatic execution
+  const getBaselineAction = useCallback((obs: Observation): Action => {
+    const waiting = [...obs.victims]
+      .filter(v => v.status === 'waiting')
+      .sort((a, b) => {
+        const order = { critical: 3, serious: 2, moderate: 1, minor: 0 };
+        return (order[b.severity] || 0) - (order[a.severity] || 0);
+      });
+
+    if (waiting.length > 0) {
+      if (obs.resources.ambulancesAvailable > 0) {
+        return { type: 'dispatch_ambulance', targetId: waiting[0].id };
+      }
+      if (obs.resources.rescueTeamsAvailable > 0) {
+        return { type: 'send_rescue_team', targetId: waiting[0].id };
+      }
+    }
+
+    const inTransit = obs.victims.find(v => v.status === 'in_transit' || v.status === 'rescued');
+    if (inTransit && obs.resources.hospitalCapacityAvailable > 0) {
+      return { type: 'notify_hospital', targetId: inTransit.id };
+    }
+
+    return { type: 'wait' };
+  }, []);
+
   // Handle automatic simulation steps when 'Play' is active
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
     
-    if (isRunning && !isDone) {
+    if (isRunning && !isDone && observation) {
       interval = setInterval(() => {
-        // Default policy is to 'wait' if no manual action is provided
-        stepSimulation({ type: 'wait' });
+        const action = getBaselineAction(observation);
+        stepSimulation(action);
       }, 1500);
-    } else if (interval) {
-      clearInterval(interval);
     }
     
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isRunning, isDone, stepSimulation]);
+  }, [isRunning, isDone, observation, stepSimulation, getBaselineAction]);
 
   useEffect(() => {
     resetSimulation();

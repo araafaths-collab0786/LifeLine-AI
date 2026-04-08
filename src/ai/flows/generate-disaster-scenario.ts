@@ -100,7 +100,7 @@ export async function generateDisasterScenario(
   input: GenerateDisasterScenarioInput
 ): Promise<GenerateDisasterScenarioOutput> {
   let attempts = 0;
-  const maxAttempts = 5;
+  const maxAttempts = 6;
   
   while (attempts < maxAttempts) {
     try {
@@ -118,14 +118,15 @@ export async function generateDisasterScenario(
         errorMessage.includes('429') || 
         errorMessage.includes('RESOURCE_EXHAUSTED') ||
         errorMessage.includes('high demand') ||
-        errorMessage.includes('quota');
+        errorMessage.includes('quota') ||
+        errorMessage.includes('limit');
 
       if (attempts >= maxAttempts || !isRetryable) {
         throw error;
       }
       
-      // Exponential backoff: 2s, 4s, 8s, 16s...
-      const delay = Math.pow(2, attempts) * 1000;
+      // Patient exponential backoff: 3s, 6s, 12s, 24s...
+      const delay = Math.pow(2, attempts) * 1500;
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }

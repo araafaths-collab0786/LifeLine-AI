@@ -46,14 +46,13 @@ export function ScenarioGenerator({ onScenarioGenerated }: ScenarioGeneratorProp
         description: `Successfully initialized ${result.scenarioName}.`,
       });
     } catch (error: any) {
-      console.error(error);
-      const isQuotaError = error.toString().includes('429') || error.toString().includes('quota');
+      const isQuotaError = error.toString().includes('429') || error.toString().includes('quota') || error.toString().includes('limit');
       toast({
         variant: "destructive",
         title: isQuotaError ? "Quota Exhausted" : "Service Unavailable",
         description: isQuotaError 
           ? "AI request limit reached. Please wait a minute before trying again." 
-          : "The AI engine is currently experiencing high demand. Retrying...",
+          : "The AI engine is currently experiencing high demand. Please try again shortly.",
       });
     } finally {
       setIsGenerating(false);
