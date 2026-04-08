@@ -13,7 +13,7 @@ interface PerformanceDashboardProps {
 
 export function PerformanceDashboard({ logs }: PerformanceDashboardProps) {
   // Data processing for charts
-  const chartData = [...logs].reverse().map((l, idx) => {
+  const chartData = [...logs].reverse().map((l) => {
     const cumulative = logs
       .filter(log => log.step <= l.step)
       .reduce((acc, log) => acc + log.reward, 0);
@@ -35,10 +35,10 @@ export function PerformanceDashboard({ logs }: PerformanceDashboardProps) {
 
   // Outcome distribution analysis
   const statusDistribution = [
-    { name: 'SOTA Response', value: logs.filter(l => l.reward > 0.7).length, color: 'hsl(var(--chart-1))' },
-    { name: 'Optimal', value: logs.filter(l => l.reward > 0.5 && l.reward <= 0.7).length, color: 'hsl(var(--chart-2))' },
-    { name: 'Sub-Optimal', value: logs.filter(l => l.reward >= 0.3 && l.reward <= 0.5).length, color: 'hsl(var(--chart-4))' },
-    { name: 'Critical Failure', value: logs.filter(l => l.reward < 0.3).length, color: 'hsl(var(--destructive))' }
+    { name: 'SOTA Accuracy', value: logs.filter(l => l.reward > 0.7).length, color: 'hsl(var(--chart-1))' },
+    { name: 'Optimal Response', value: logs.filter(l => l.reward > 0.5 && l.reward <= 0.7).length, color: 'hsl(var(--chart-2))' },
+    { name: 'Sub-Optimal', value: logs.filter(l => l.reward >= 0.3 && l.reward <= 0.5).length, color: 'hsl(var(--chart-3))' },
+    { name: 'Process Delay', value: logs.filter(l => l.reward < 0.3).length, color: 'hsl(var(--destructive))' }
   ];
 
   // Advanced metrics calculation
@@ -52,14 +52,14 @@ export function PerformanceDashboard({ logs }: PerformanceDashboardProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Mean Agent Reward', val: avgReward.toFixed(3), icon: Target, color: 'text-primary', bg: 'bg-primary/10' },
-          { label: 'Survival Probability', val: `${survivalRate.toFixed(1)}%`, icon: Zap, color: 'text-accent', bg: 'bg-accent/10' },
-          { label: 'Peak Performance', val: peakReward.toFixed(3), icon: Activity, color: 'text-green-400', bg: 'bg-green-400/10' },
-          { label: 'Validation Steps', val: `${logs.length}/20`, icon: CheckCircle2, color: 'text-blue-400', bg: 'bg-blue-400/10' }
+          { label: 'Mission Success Prob', val: `${survivalRate.toFixed(1)}%`, icon: Zap, color: 'text-accent', bg: 'bg-accent/10' },
+          { label: 'Peak Step Performance', val: peakReward.toFixed(3), icon: Activity, color: 'text-green-400', bg: 'bg-green-400/10' },
+          { label: 'Verified Episodes', val: `${logs.length}/20`, icon: CheckCircle2, color: 'text-blue-400', bg: 'bg-blue-400/10' }
         ].map((item, i) => (
-          <Card key={i} className="border-white/5 bg-black/20 backdrop-blur-md overflow-hidden relative group hover:border-white/20 transition-all">
+          <Card key={i} className="border-white/5 bg-black/20 backdrop-blur-md overflow-hidden relative group transition-all">
             <div className={`absolute top-0 left-0 w-1 h-full ${item.color.replace('text', 'bg')}`} />
             <CardContent className="p-5 flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-xl ${item.bg} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>
+              <div className={`w-12 h-12 rounded-xl ${item.bg} flex items-center justify-center shrink-0`}>
                 <item.icon className={`w-6 h-6 ${item.color}`} />
               </div>
               <div className="space-y-0.5">
@@ -78,9 +78,9 @@ export function PerformanceDashboard({ logs }: PerformanceDashboardProps) {
             <div>
               <CardTitle className="text-sm font-bold flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-primary" />
-                Performance Trajectory
+                Reward Trajectory
               </CardTitle>
-              <CardDescription className="text-[10px]">Step-by-step reward and cumulative progress metrics</CardDescription>
+              <CardDescription className="text-[10px]">Real-time step reward vs cumulative trend</CardDescription>
             </div>
             <Badge variant="outline" className="font-code text-[10px] border-primary/20 text-primary">LIVE TELEMETRY</Badge>
           </CardHeader>
@@ -119,7 +119,6 @@ export function PerformanceDashboard({ logs }: PerformanceDashboardProps) {
                     fillOpacity={1} 
                     fill="url(#colorReward)" 
                     strokeWidth={3}
-                    animationDuration={1500}
                   />
                   <Area 
                     type="monotone" 
@@ -129,7 +128,6 @@ export function PerformanceDashboard({ logs }: PerformanceDashboardProps) {
                     fill="url(#colorCumulative)" 
                     strokeWidth={2}
                     strokeDasharray="5 5"
-                    animationDuration={2000}
                   />
                 </AreaChart>
               </ChartContainer>
@@ -144,7 +142,7 @@ export function PerformanceDashboard({ logs }: PerformanceDashboardProps) {
               <BarChart3 className="w-4 h-4 text-accent" />
               Outcome Density
             </CardTitle>
-            <CardDescription className="text-[10px]">Action result categorization</CardDescription>
+            <CardDescription className="text-[10px]">Statistical categorization of agent actions</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[300px] w-full">
@@ -156,12 +154,12 @@ export function PerformanceDashboard({ logs }: PerformanceDashboardProps) {
                     dataKey="name" 
                     type="category" 
                     tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
-                    width={80}
+                    width={90}
                     axisLine={false}
                     tickLine={false}
                   />
                   <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={32}>
+                  <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={28}>
                     {statusDistribution.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
@@ -172,9 +170,9 @@ export function PerformanceDashboard({ logs }: PerformanceDashboardProps) {
             
             <div className="mt-4 pt-4 border-t border-white/5 space-y-3">
                <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-muted-foreground flex items-center gap-2">
+                  <span className="text-muted-foreground flex items-center gap-2 font-bold uppercase tracking-widest">
                     <ShieldAlert className="w-3 h-3 text-destructive" />
-                    High-Risk Failures
+                    Critical Failures
                   </span>
                   <span className="font-bold">{logs.filter(l => l.reward < 0.2).length} Event(s)</span>
                </div>
