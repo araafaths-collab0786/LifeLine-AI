@@ -51,6 +51,24 @@ export function useSimulation() {
     }
   }, [env, isDone, toast]);
 
+  // Handle automatic simulation steps when 'Play' is active
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    
+    if (isRunning && !isDone) {
+      interval = setInterval(() => {
+        // Default policy is to 'wait' if no manual action is provided
+        stepSimulation({ type: 'wait' });
+      }, 1500);
+    } else if (interval) {
+      clearInterval(interval);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isRunning, isDone, stepSimulation]);
+
   useEffect(() => {
     resetSimulation();
   }, []);

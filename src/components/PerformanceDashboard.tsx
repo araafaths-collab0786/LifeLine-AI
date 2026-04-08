@@ -2,7 +2,7 @@
 
 import { LogEntry } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar, ResponsiveContainer, Cell } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar, Cell } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { TrendingUp, Activity, Timer, CheckCircle2 } from "lucide-react";
 
@@ -19,7 +19,8 @@ export function PerformanceDashboard({ logs }: PerformanceDashboardProps) {
 
   const chartConfig = {
     reward: { label: "Step Reward", color: "hsl(var(--primary))" },
-    cumulative: { label: "Total Score", color: "hsl(var(--accent))" }
+    cumulative: { label: "Total Score", color: "hsl(var(--accent))" },
+    value: { label: "Count", color: "hsl(var(--primary))" }
   };
 
   const statusDistribution = [
@@ -114,8 +115,9 @@ export function PerformanceDashboard({ logs }: PerformanceDashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="h-[250px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
+              <ChartContainer config={chartConfig}>
                 <BarChart data={statusDistribution}>
+                  <CartesianGrid vertical={false} stroke="hsl(var(--muted))" strokeDasharray="3 3" />
                   <XAxis dataKey="name" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                   <YAxis hide />
                   <ChartTooltip content={<ChartTooltipContent />} />
@@ -125,7 +127,7 @@ export function PerformanceDashboard({ logs }: PerformanceDashboardProps) {
                     ))}
                   </Bar>
                 </BarChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             </div>
           </CardContent>
         </Card>
