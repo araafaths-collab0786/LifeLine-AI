@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI decision explainer tool that interprets an agent's actions
@@ -67,10 +68,32 @@ const explainAgentDecisionFlow = ai.defineFlow(
     outputSchema: ExplainAgentDecisionOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    if (!output) {
-      throw new Error('Failed to get explanation from the AI model.');
+    let attempts = 0;
+    const maxAttempts = 3;
+    while (attempts < maxAttempts) {
+      try {
+        const {output} = await prompt(input);
+        if (!output) {
+          throw new Error('Failed to get explanation from the AI model.');
+        }
+        return output;
+      } catch (error: any) {
+        attempts++;
+        const errorMessage = error?.message || '';
+        const isRetryable = 
+          errorMessage.includes('503') || 
+          errorMessage.includes('UNAVAILABLE') || 
+          errorMessage.includes('high demand') ||
+          errorMessage.includes('Service Unavailable');
+
+        if (attempts >= maxAttempts || !isRetryable) {
+          throw error;
+        }
+        
+        // Exponential backoff: 2s, 4s, 6s...
+        await new Promise((resolve) => setTimeout(resolve, attempts * 2000));
+      }
     }
-    return output;
+    throw new Error('Maximum retry attempts reached for agent decision explanation.');
   }
 );

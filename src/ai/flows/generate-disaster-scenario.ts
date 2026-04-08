@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI tool to generate diverse and detailed disaster scenario configurations.
@@ -103,10 +104,32 @@ const generateDisasterScenarioFlow = ai.defineFlow(
     outputSchema: GenerateDisasterScenarioOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    if (!output) {
-      throw new Error('Failed to generate scenario output');
+    let attempts = 0;
+    const maxAttempts = 3;
+    while (attempts < maxAttempts) {
+      try {
+        const { output } = await prompt(input);
+        if (!output) {
+          throw new Error('Failed to generate scenario output');
+        }
+        return output;
+      } catch (error: any) {
+        attempts++;
+        const errorMessage = error?.message || '';
+        const isRetryable = 
+          errorMessage.includes('503') || 
+          errorMessage.includes('UNAVAILABLE') || 
+          errorMessage.includes('high demand') ||
+          errorMessage.includes('Service Unavailable');
+
+        if (attempts >= maxAttempts || !isRetryable) {
+          throw error;
+        }
+        
+        // Exponential backoff: 2s, 4s, 6s...
+        await new Promise((resolve) => setTimeout(resolve, attempts * 2000));
+      }
     }
-    return output;
+    throw new Error('Maximum retry attempts reached for disaster scenario generation.');
   }
 );
