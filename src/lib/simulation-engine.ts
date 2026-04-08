@@ -151,16 +151,19 @@ export class LifeLineEnv {
 export const PRESET_SCENARIOS: Scenario[] = [
   {
     id: 'easy_commuter_accident',
-    scenarioName: 'Lone Commuter Accident',
+    scenarioName: 'Multi-Vehicle Collision',
     disasterType: 'accident',
     scale: 'small',
     geographicalContext: 'urban',
     specificChallenges: [],
     initialVictims: [
-      { id: 'v1', locationDescription: 'Main St Intersection', severity: 'moderate', distanceFromCommandCenterKm: 2, estimatedInitialResponseTimeMinutes: 5, status: 'waiting', x: 45, y: 55 }
+      { id: 'v1', locationDescription: 'Intersection A', severity: 'moderate', distanceFromCommandCenterKm: 2, estimatedInitialResponseTimeMinutes: 5, status: 'waiting', x: 45, y: 55 },
+      { id: 'v1b', locationDescription: 'Park Avenue', severity: 'serious', distanceFromCommandCenterKm: 5, estimatedInitialResponseTimeMinutes: 8, status: 'waiting', x: 65, y: 35 },
+      { id: 'v1c', locationDescription: 'Market Street', severity: 'minor', distanceFromCommandCenterKm: 3, estimatedInitialResponseTimeMinutes: 6, status: 'waiting', x: 25, y: 45 },
+      { id: 'v1d', locationDescription: 'Old Bridge', severity: 'critical', distanceFromCommandCenterKm: 8, estimatedInitialResponseTimeMinutes: 12, status: 'waiting', x: 75, y: 15 }
     ],
-    initialResources: { ambulancesAvailable: 2, rescueTeamsAvailable: 1, hospitalCapacityAvailable: 10 },
-    scenarioDescription: 'A minor traffic collision with one victim in a highly accessible urban area.'
+    initialResources: { ambulancesAvailable: 3, rescueTeamsAvailable: 1, hospitalCapacityAvailable: 15 },
+    scenarioDescription: 'A chain reaction accident in a dense urban area with multiple casualties requiring triage.'
   },
   {
     id: 'medium_river_flood',
@@ -172,7 +175,8 @@ export const PRESET_SCENARIOS: Scenario[] = [
     initialVictims: [
       { id: 'v2', locationDescription: 'North Bridge', severity: 'serious', distanceFromCommandCenterKm: 12, estimatedInitialResponseTimeMinutes: 25, status: 'waiting', x: 20, y: 30 },
       { id: 'v3', locationDescription: 'West Farm', severity: 'critical', distanceFromCommandCenterKm: 15, estimatedInitialResponseTimeMinutes: 30, status: 'waiting', x: 80, y: 25 },
-      { id: 'v4', locationDescription: 'Lowlands Rd', severity: 'moderate', distanceFromCommandCenterKm: 8, estimatedInitialResponseTimeMinutes: 15, status: 'waiting', x: 50, y: 70 }
+      { id: 'v4', locationDescription: 'Lowlands Rd', severity: 'moderate', distanceFromCommandCenterKm: 8, estimatedInitialResponseTimeMinutes: 15, status: 'waiting', x: 50, y: 70 },
+      { id: 'v4b', locationDescription: 'East Jetty', severity: 'critical', distanceFromCommandCenterKm: 18, estimatedInitialResponseTimeMinutes: 35, status: 'waiting', x: 90, y: 60 }
     ],
     initialResources: { ambulancesAvailable: 1, rescueTeamsAvailable: 2, hospitalCapacityAvailable: 5 },
     scenarioDescription: 'Localized flooding has stranded residents with limited ambulance access and difficult terrain.'

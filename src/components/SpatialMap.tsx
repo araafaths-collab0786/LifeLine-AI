@@ -3,12 +3,19 @@
 import { Observation, Victim } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AlertTriangle, Activity, Ambulance, Building2, MapPin, Skull } from "lucide-react";
+import { AlertTriangle, Activity, Ambulance, Building2, MapPin, Skull, Cross, Landmark } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SpatialMapProps {
   observation: Observation | null;
 }
+
+const STATIC_LANDMARKS = [
+  { id: 'h1', name: 'St. Judes Medical Center', x: 15, y: 15, type: 'hospital' },
+  { id: 'h2', name: 'Central Trauma Unit', x: 85, y: 15, type: 'hospital' },
+  { id: 'h3', name: 'Southside Infirmary', x: 15, y: 85, type: 'hospital' },
+  { id: 'p1', name: 'Paramedic Station 4', x: 85, y: 85, type: 'outpost' },
+];
 
 const StatusIcon = ({ status, className }: { status: string; className?: string }) => {
   switch (status) {
@@ -43,6 +50,29 @@ export function SpatialMap({ observation }: SpatialMapProps) {
         </div>
         <Badge variant="outline" className="absolute top-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/60 backdrop-blur-md text-[8px] border-primary/30">HQ CENTER</Badge>
       </div>
+
+      {/* Static Landmarks */}
+      <TooltipProvider>
+        {STATIC_LANDMARKS.map((landmark) => (
+          <div 
+            key={landmark.id}
+            className="absolute -translate-x-1/2 -translate-y-1/2 opacity-40 hover:opacity-100 transition-opacity z-10"
+            style={{ left: `${landmark.x}%`, top: `${landmark.y}%` }}
+          >
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="w-6 h-6 rounded-md bg-white/5 border border-white/10 flex items-center justify-center cursor-help">
+                  {landmark.type === 'hospital' ? <Building2 className="w-3 h-3 text-green-400" /> : <Landmark className="w-3 h-3 text-blue-400" />}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="bg-black/90 border-white/10 p-2">
+                <p className="text-[10px] font-bold text-white">{landmark.name}</p>
+                <p className="text-[8px] text-muted-foreground uppercase">{landmark.type.replace('_', ' ')}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        ))}
+      </TooltipProvider>
 
       {/* Victims Mapping */}
       <TooltipProvider>
