@@ -145,7 +145,8 @@ export function PerformanceDashboard({ logs }: PerformanceDashboardProps) {
             <CardDescription className="text-[10px]">Statistical categorization of agent actions</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px] w-full">
+            {/* Reduced container height for better vertical proportion */}
+            <div className="h-[220px] w-full">
               <ChartContainer config={chartConfig}>
                 <BarChart data={statusDistribution} layout="vertical" margin={{ left: -40 }}>
                   <CartesianGrid horizontal={false} stroke="rgba(255,255,255,0.05)" />
@@ -159,7 +160,8 @@ export function PerformanceDashboard({ logs }: PerformanceDashboardProps) {
                     tickLine={false}
                   />
                   <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={28}>
+                  {/* Smaller barSize for a more compact appearance */}
+                  <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
                     {statusDistribution.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
