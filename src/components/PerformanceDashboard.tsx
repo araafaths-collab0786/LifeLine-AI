@@ -1,104 +1,135 @@
 "use client"
 
 import { LogEntry } from "@/lib/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar, Cell } from 'recharts';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { TrendingUp, Activity, Timer, CheckCircle2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar, Cell, ResponsiveContainer } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
+import { TrendingUp, Activity, Timer, CheckCircle2, ShieldAlert, Zap, Target, BarChart3 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface PerformanceDashboardProps {
   logs: LogEntry[];
 }
 
 export function PerformanceDashboard({ logs }: PerformanceDashboardProps) {
-  const chartData = [...logs].reverse().map(l => ({
-    step: l.step,
-    reward: l.reward,
-    cumulative: logs.filter(log => log.step <= l.step).reduce((acc, log) => acc + log.reward, 0)
-  }));
+  // Data processing for charts
+  const chartData = [...logs].reverse().map((l, idx) => {
+    const cumulative = logs
+      .filter(log => log.step <= l.step)
+      .reduce((acc, log) => acc + log.reward, 0);
+    
+    return {
+      step: l.step,
+      reward: l.reward,
+      cumulative: parseFloat(cumulative.toFixed(2)),
+      baseline: 0.5
+    };
+  });
 
-  const chartConfig = {
+  const chartConfig: ChartConfig = {
     reward: { label: "Step Reward", color: "hsl(var(--primary))" },
-    cumulative: { label: "Total Score", color: "hsl(var(--accent))" },
-    value: { label: "Count", color: "hsl(var(--primary))" }
+    cumulative: { label: "Cumulative Score", color: "hsl(var(--accent))" },
+    baseline: { label: "Baseline", color: "hsl(var(--muted-foreground))" },
+    value: { label: "Frequency", color: "hsl(var(--primary))" }
   };
 
+  // Outcome distribution analysis
   const statusDistribution = [
-    { name: 'Success', value: logs.filter(l => l.reward > 0.6).length, color: 'hsl(var(--primary))' },
-    { name: 'Neutral', value: logs.filter(l => l.reward >= 0.4 && l.reward <= 0.6).length, color: 'hsl(var(--muted-foreground))' },
-    { name: 'Failure', value: logs.filter(l => l.reward < 0.4).length, color: 'hsl(var(--destructive))' }
+    { name: 'SOTA Response', value: logs.filter(l => l.reward > 0.7).length, color: 'hsl(var(--chart-1))' },
+    { name: 'Optimal', value: logs.filter(l => l.reward > 0.5 && l.reward <= 0.7).length, color: 'hsl(var(--chart-2))' },
+    { name: 'Sub-Optimal', value: logs.filter(l => l.reward >= 0.3 && l.reward <= 0.5).length, color: 'hsl(var(--chart-4))' },
+    { name: 'Critical Failure', value: logs.filter(l => l.reward < 0.3).length, color: 'hsl(var(--destructive))' }
   ];
 
+  // Advanced metrics calculation
   const avgReward = logs.length > 0 ? (logs.reduce((acc, l) => acc + l.reward, 0) / logs.length) : 0;
-  const efficiency = logs.length > 0 ? (logs.filter(l => l.reward > 0.5).length / logs.length * 100) : 0;
+  const survivalRate = logs.length > 0 ? (logs.filter(l => l.reward > 0.6).length / logs.length * 100) : 0;
+  const peakReward = logs.length > 0 ? Math.max(...logs.map(l => l.reward)) : 0;
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-white/5 bg-white/5 p-4 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-            <TrendingUp className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <p className="text-[10px] text-muted-foreground uppercase font-bold">Avg Agent Reward</p>
-            <p className="text-xl font-code font-bold">{avgReward.toFixed(3)}</p>
-          </div>
-        </Card>
-        <Card className="border-white/5 bg-white/5 p-4 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-            <Activity className="w-5 h-5 text-accent" />
-          </div>
-          <div>
-            <p className="text-[10px] text-muted-foreground uppercase font-bold">System Efficiency</p>
-            <p className="text-xl font-code font-bold">{efficiency.toFixed(1)}%</p>
-          </div>
-        </Card>
-        <Card className="border-white/5 bg-white/5 p-4 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-            <CheckCircle2 className="w-5 h-5 text-green-400" />
-          </div>
-          <div>
-            <p className="text-[10px] text-muted-foreground uppercase font-bold">Steps Validated</p>
-            <p className="text-xl font-code font-bold">{logs.length} / 20</p>
-          </div>
-        </Card>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Top Level Intelligence Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'Mean Agent Reward', val: avgReward.toFixed(3), icon: Target, color: 'text-primary', bg: 'bg-primary/10' },
+          { label: 'Survival Probability', val: `${survivalRate.toFixed(1)}%`, icon: Zap, color: 'text-accent', bg: 'bg-accent/10' },
+          { label: 'Peak Performance', val: peakReward.toFixed(3), icon: Activity, color: 'text-green-400', bg: 'bg-green-400/10' },
+          { label: 'Validation Steps', val: `${logs.length}/20`, icon: CheckCircle2, color: 'text-blue-400', bg: 'bg-blue-400/10' }
+        ].map((item, i) => (
+          <Card key={i} className="border-white/5 bg-black/20 backdrop-blur-md overflow-hidden relative group hover:border-white/20 transition-all">
+            <div className={`absolute top-0 left-0 w-1 h-full ${item.color.replace('text', 'bg')}`} />
+            <CardContent className="p-5 flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-xl ${item.bg} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>
+                <item.icon className={`w-6 h-6 ${item.color}`} />
+              </div>
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{item.label}</p>
+                <p className="text-2xl font-code font-bold tracking-tight text-white">{item.val}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-white/5 bg-white/5">
-          <CardHeader>
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-primary" />
-              Reward Trajectory
-            </CardTitle>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Reward Area Chart */}
+        <Card className="lg:col-span-2 border-white/5 bg-black/40 backdrop-blur-xl">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-sm font-bold flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-primary" />
+                Performance Trajectory
+              </CardTitle>
+              <CardDescription className="text-[10px]">Step-by-step reward and cumulative progress metrics</CardDescription>
+            </div>
+            <Badge variant="outline" className="font-code text-[10px] border-primary/20 text-primary">LIVE TELEMETRY</Badge>
           </CardHeader>
           <CardContent>
-            <div className="h-[250px] w-full">
+            <div className="h-[300px] w-full">
               <ChartContainer config={chartConfig}>
-                <AreaChart data={chartData}>
+                <AreaChart data={chartData} margin={{ left: -20, right: 10 }}>
                   <defs>
-                    <linearGradient id="fillReward" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="colorReward" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
                       <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
                     </linearGradient>
+                    <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0}/>
+                    </linearGradient>
                   </defs>
-                  <CartesianGrid vertical={false} stroke="hsl(var(--muted))" strokeDasharray="3 3" />
+                  <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="step" 
                     tickLine={false} 
                     axisLine={false} 
-                    tickMargin={8}
-                    tick={{ fontSize: 10 }}
+                    tickMargin={12}
+                    tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
                   />
-                  <YAxis hide />
+                  <YAxis 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                  />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Area 
                     type="monotone" 
                     dataKey="reward" 
                     stroke="hsl(var(--primary))" 
                     fillOpacity={1} 
-                    fill="url(#fillReward)" 
+                    fill="url(#colorReward)" 
+                    strokeWidth={3}
+                    animationDuration={1500}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="cumulative" 
+                    stroke="hsl(var(--accent))" 
+                    fillOpacity={1} 
+                    fill="url(#colorCumulative)" 
                     strokeWidth={2}
+                    strokeDasharray="5 5"
+                    animationDuration={2000}
                   />
                 </AreaChart>
               </ChartContainer>
@@ -106,28 +137,53 @@ export function PerformanceDashboard({ logs }: PerformanceDashboardProps) {
           </CardContent>
         </Card>
 
-        <Card className="border-white/5 bg-white/5">
+        {/* Outcome Bar Chart */}
+        <Card className="border-white/5 bg-black/40 backdrop-blur-xl">
           <CardHeader>
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Timer className="w-4 h-4 text-accent" />
-              Action Outcome Density
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-accent" />
+              Outcome Density
             </CardTitle>
+            <CardDescription className="text-[10px]">Action result categorization</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[250px] w-full">
+            <div className="h-[300px] w-full">
               <ChartContainer config={chartConfig}>
-                <BarChart data={statusDistribution}>
-                  <CartesianGrid vertical={false} stroke="hsl(var(--muted))" strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <YAxis hide />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                <BarChart data={statusDistribution} layout="vertical" margin={{ left: -40 }}>
+                  <CartesianGrid horizontal={false} stroke="rgba(255,255,255,0.05)" />
+                  <XAxis type="number" hide />
+                  <YAxis 
+                    dataKey="name" 
+                    type="category" 
+                    tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+                    width={80}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                  <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={32}>
                     {statusDistribution.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Bar>
                 </BarChart>
               </ChartContainer>
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-white/5 space-y-3">
+               <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-muted-foreground flex items-center gap-2">
+                    <ShieldAlert className="w-3 h-3 text-destructive" />
+                    High-Risk Failures
+                  </span>
+                  <span className="font-bold">{logs.filter(l => l.reward < 0.2).length} Event(s)</span>
+               </div>
+               <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-destructive transition-all duration-1000" 
+                    style={{ width: `${(logs.filter(l => l.reward < 0.2).length / Math.max(logs.length, 1)) * 100}%` }} 
+                  />
+               </div>
             </div>
           </CardContent>
         </Card>
