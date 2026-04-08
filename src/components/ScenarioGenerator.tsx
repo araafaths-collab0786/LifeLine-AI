@@ -47,10 +47,13 @@ export function ScenarioGenerator({ onScenarioGenerated }: ScenarioGeneratorProp
       });
     } catch (error: any) {
       console.error(error);
+      const isQuotaError = error.toString().includes('429') || error.toString().includes('quota');
       toast({
         variant: "destructive",
-        title: "AI Service Busy",
-        description: "The AI engine is currently over capacity or quota is exhausted. Please try again in a minute.",
+        title: isQuotaError ? "Quota Exhausted" : "Service Unavailable",
+        description: isQuotaError 
+          ? "AI request limit reached. Please wait a minute before trying again." 
+          : "The AI engine is currently experiencing high demand. Retrying...",
       });
     } finally {
       setIsGenerating(false);
@@ -73,15 +76,15 @@ export function ScenarioGenerator({ onScenarioGenerated }: ScenarioGeneratorProp
           placeholder="e.g. A major flash flood in a mountainous village..."
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          className="min-h-[100px] bg-background/50"
+          className="min-h-[100px] bg-background/50 border-white/10"
         />
         <Button 
           onClick={handleGenerate} 
           disabled={isGenerating || !prompt} 
-          className="w-full"
+          className="w-full shadow-lg shadow-primary/10"
         >
           {isGenerating ? (
-            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating Environment...</>
+            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Synthesizing World...</>
           ) : (
             <><Sparkles className="w-4 h-4 mr-2" /> Generate Training Task</>
           )}

@@ -21,6 +21,7 @@ export function DecisionExplainer({ observation, lastLog }: DecisionExplainerPro
   const handleExplain = async () => {
     if (!observation || !lastLog) return;
     setIsLoading(true);
+    setExplanation(null);
     try {
       const result = await explainAgentDecision({
         observation: JSON.stringify(observation),
@@ -29,10 +30,13 @@ export function DecisionExplainer({ observation, lastLog }: DecisionExplainerPro
       setExplanation(result.explanation);
     } catch (error: any) {
       console.error(error);
+      const isQuotaError = error.toString().includes('429') || error.toString().includes('quota');
       toast({
         variant: "destructive",
-        title: "Analysis Error",
-        description: "AI service is currently unavailable or rate limited. Please try again shortly.",
+        title: isQuotaError ? "Quota Limit" : "Analysis Error",
+        description: isQuotaError 
+          ? "AI analysis is currently at its limit. Please try again in 30 seconds." 
+          : "AI service is currently unavailable. Please try again shortly.",
       });
     } finally {
       setIsLoading(false);
@@ -49,7 +53,7 @@ export function DecisionExplainer({ observation, lastLog }: DecisionExplainerPro
       </CardHeader>
       <CardContent className="space-y-4">
         {explanation ? (
-          <div className="text-xs text-muted-foreground leading-relaxed italic bg-black/20 p-3 rounded-lg border border-white/5 flex gap-3">
+          <div className="text-xs text-muted-foreground leading-relaxed italic bg-black/20 p-3 rounded-lg border border-white/5 flex gap-3 animate-in fade-in duration-500">
             <MessageSquareQuote className="w-4 h-4 text-accent shrink-0" />
             {explanation}
           </div>
@@ -63,10 +67,13 @@ export function DecisionExplainer({ observation, lastLog }: DecisionExplainerPro
           size="sm" 
           onClick={handleExplain} 
           disabled={isLoading || !lastLog}
-          className="w-full text-xs h-8 border-accent/20 hover:bg-accent/10 hover:text-accent"
+          className="w-full text-xs h-8 border-accent/20 hover:bg-accent/10 hover:text-accent transition-all"
         >
-          {isLoading ? <Loader2 className="w-3 h-3 mr-2 animate-spin" /> : <BrainCircuit className="w-3 h-3 mr-2" />}
-          Explain Last Action
+          {isLoading ? (
+            <><Loader2 className="w-3 h-3 mr-2 animate-spin" /> Analyzing Policy...</>
+          ) : (
+            <><BrainCircuit className="w-3 h-3 mr-2" /> Explain Last Action</>
+          )}
         </Button>
       </CardContent>
     </Card>

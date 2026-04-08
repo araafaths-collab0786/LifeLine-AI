@@ -15,7 +15,7 @@ const GenerateDisasterScenarioInputSchema = z.object({
   userPrompt: z
     .string()
     .describe(
-      'A high-level text prompt describing the desired disaster scenario configuration. For example: "A major flood in a coastal town with multiple critical victims and limited rescue teams."\n'
+      'A high-level text prompt describing the desired disaster scenario configuration. For example: "A major flood in a coastal town with multiple critical victims and limited rescue teams."'
     ),
 });
 export type GenerateDisasterScenarioInput = z.infer<
@@ -53,16 +53,16 @@ const GenerateDisasterScenarioOutputSchema = z.object({
         id: z.string().describe('Unique identifier for the victim (e.g., "victim_1").'),
         locationDescription: z
           .string()
-          .describe('A brief description of the victim\u0027s location (e.g., "north side of Main Street", "third floor of the collapsed building").'),
+          .describe('A brief description of the victim\'s location.'),
         severity: z
           .enum(['critical', 'serious', 'moderate', 'minor'])
-          .describe('The severity of the victim\u0027s condition.'),
+          .describe('The severity of the victim\'s condition.'),
         distanceFromCommandCenterKm: z
           .number()
-          .describe('Estimated distance of the victim from a central command center in kilometers.'),
+          .describe('Distance from command center in km.'),
         estimatedInitialResponseTimeMinutes: z
           .number()
-          .describe('Estimated initial time required for a first responder to reach the victim in minutes, considering obstacles.'),
+          .describe('Initial response time in minutes.'),
         x: z.number().min(0).max(100).describe('X coordinate on a 0-100 grid.'),
         y: z.number().min(0).max(100).describe('Y coordinate on a 0-100 grid.'),
       })
@@ -70,72 +70,64 @@ const GenerateDisasterScenarioOutputSchema = z.object({
     .describe('An array of initial victim details.'),
   initialResources: z
     .object({
-      ambulancesAvailable: z.number().describe('The number of ambulances initially available for deployment.'),
+      ambulancesAvailable: z.number().describe('The number of ambulances initially available.'),
       rescueTeamsAvailable: z.number().describe('The number of rescue teams initially available.'),
       hospitalCapacityAvailable: z
         .number()
-        .describe('The number of available hospital beds or capacity for new patients.'),
+        .describe('The number of available hospital beds.'),
     })
     .describe('Initial resources available for disaster response.'),
   scenarioDescription: z
     .string()
-    .describe('A detailed narrative description of the generated disaster scenario, summarizing all the above parameters.'),
+    .describe('A detailed narrative description of the generated disaster scenario.'),
 });
 export type GenerateDisasterScenarioOutput = z.infer<
   typeof GenerateDisasterScenarioOutputSchema
 >;
 
-export async function generateDisasterScenario(
-  input: GenerateDisasterScenarioInput
-): Promise<GenerateDisasterScenarioOutput> {
-  return generateDisasterScenarioFlow(input);
-}
-
 const prompt = ai.definePrompt({
   name: 'generateDisasterScenarioPrompt',
   input: { schema: GenerateDisasterScenarioInputSchema },
   output: { schema: GenerateDisasterScenarioOutputSchema },
-  prompt: `You are an AI assistant that specializes in generating realistic and diverse disaster scenario configurations for training emergency response AI agents.\n\nYour task is to create a detailed disaster scenario configuration based on the user's high-level prompt. Ensure the generated scenario is challenging and suitable for testing decision-making under pressure.\n\nAlways provide output in JSON format, strictly adhering to the specified schema for GenerateDisasterScenarioOutput. The 'id' for victims should be unique (e.g., "victim_1", "victim_2"). Ensure all fields are populated appropriately.\n\nUser Prompt: {{{userPrompt}}}`,
+  prompt: `You are an AI assistant that specializes in generating realistic and diverse disaster scenario configurations for training emergency response AI agents.
+
+Create a detailed disaster scenario configuration based on the user's high-level prompt. Ensure the generated scenario is challenging and suitable for testing decision-making under pressure.
+
+User Prompt: {{{userPrompt}}}`,
 });
 
-const generateDisasterScenarioFlow = ai.defineFlow(
-  {
-    name: 'generateDisasterScenarioFlow',
-    inputSchema: GenerateDisasterScenarioInputSchema,
-    outputSchema: GenerateDisasterScenarioOutputSchema,
-  },
-  async (input) => {
-    let attempts = 0;
-    const maxAttempts = 6;
-    while (attempts < maxAttempts) {
-      try {
-        const { output } = await prompt(input);
-        if (!output) {
-          throw new Error('Failed to generate scenario output');
-        }
-        return output;
-      } catch (error: any) {
-        attempts++;
-        const errorMessage = error?.toString() || '';
-        const isRetryable = 
-          errorMessage.includes('503') || 
-          errorMessage.includes('UNAVAILABLE') || 
-          errorMessage.includes('high demand') ||
-          errorMessage.includes('Service Unavailable') ||
-          errorMessage.includes('overloaded') ||
-          errorMessage.includes('429') ||
-          errorMessage.includes('RESOURCE_EXHAUSTED') ||
-          errorMessage.includes('quota');
-
-        if (attempts >= maxAttempts || !isRetryable) {
-          throw error;
-        }
-        
-        // Exponential backoff: 4s, 8s, 16s, 32s...
-        const delay = Math.pow(2, attempts) * 2000;
-        await new Promise((resolve) => setTimeout(resolve, delay));
+export async function generateDisasterScenario(
+  input: GenerateDisasterScenarioInput
+): Promise<GenerateDisasterScenarioOutput> {
+  let attempts = 0;
+  const maxAttempts = 5;
+  
+  while (attempts < maxAttempts) {
+    try {
+      const { output } = await prompt(input);
+      if (!output) {
+        throw new Error('Failed to generate scenario output');
       }
+      return output;
+    } catch (error: any) {
+      attempts++;
+      const errorMessage = error?.toString() || '';
+      const isRetryable = 
+        errorMessage.includes('503') || 
+        errorMessage.includes('UNAVAILABLE') || 
+        errorMessage.includes('429') || 
+        errorMessage.includes('RESOURCE_EXHAUSTED') ||
+        errorMessage.includes('high demand') ||
+        errorMessage.includes('quota');
+
+      if (attempts >= maxAttempts || !isRetryable) {
+        throw error;
+      }
+      
+      // Exponential backoff: 2s, 4s, 8s, 16s...
+      const delay = Math.pow(2, attempts) * 1000;
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
-    throw new Error('Maximum retry attempts reached for disaster scenario generation.');
   }
-);
+  throw new Error('Maximum retry attempts reached for scenario generation.');
+}
