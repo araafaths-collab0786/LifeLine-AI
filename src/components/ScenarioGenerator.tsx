@@ -5,8 +5,9 @@ import { generateDisasterScenario } from '@/ai/flows/generate-disaster-scenario'
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Sparkles, Loader2, Play } from 'lucide-react';
+import { Sparkles, Loader2 } from 'lucide-react';
 import { Scenario } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
 
 interface ScenarioGeneratorProps {
   onScenarioGenerated: (scenario: Scenario) => void;
@@ -15,6 +16,7 @@ interface ScenarioGeneratorProps {
 export function ScenarioGenerator({ onScenarioGenerated }: ScenarioGeneratorProps) {
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const { toast } = useToast();
 
   const handleGenerate = async () => {
     if (!prompt) return;
@@ -22,7 +24,6 @@ export function ScenarioGenerator({ onScenarioGenerated }: ScenarioGeneratorProp
     try {
       const result = await generateDisasterScenario({ userPrompt: prompt });
       
-      // Convert Genkit output to our app's Scenario type
       const newScenario: Scenario = {
         id: `gen-${Date.now()}`,
         scenarioName: result.scenarioName,
@@ -40,8 +41,17 @@ export function ScenarioGenerator({ onScenarioGenerated }: ScenarioGeneratorProp
       
       onScenarioGenerated(newScenario);
       setPrompt('');
-    } catch (error) {
+      toast({
+        title: "Scenario Generated",
+        description: `Successfully initialized ${result.scenarioName}.`,
+      });
+    } catch (error: any) {
       console.error(error);
+      toast({
+        variant: "destructive",
+        title: "AI Service Busy",
+        description: "The AI engine is currently over capacity or quota is exhausted. Please try again in a minute.",
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -60,7 +70,7 @@ export function ScenarioGenerator({ onScenarioGenerated }: ScenarioGeneratorProp
       </CardHeader>
       <CardContent className="space-y-4">
         <Textarea 
-          placeholder="e.g. A major flash flood in a mountainous village with isolated elderly victims..."
+          placeholder="e.g. A major flash flood in a mountainous village..."
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           className="min-h-[100px] bg-background/50"

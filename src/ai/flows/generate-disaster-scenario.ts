@@ -104,7 +104,7 @@ const generateDisasterScenarioFlow = ai.defineFlow(
   },
   async (input) => {
     let attempts = 0;
-    const maxAttempts = 5;
+    const maxAttempts = 6;
     while (attempts < maxAttempts) {
       try {
         const { output } = await prompt(input);
@@ -120,14 +120,18 @@ const generateDisasterScenarioFlow = ai.defineFlow(
           errorMessage.includes('UNAVAILABLE') || 
           errorMessage.includes('high demand') ||
           errorMessage.includes('Service Unavailable') ||
-          errorMessage.includes('overloaded');
+          errorMessage.includes('overloaded') ||
+          errorMessage.includes('429') ||
+          errorMessage.includes('RESOURCE_EXHAUSTED') ||
+          errorMessage.includes('quota');
 
         if (attempts >= maxAttempts || !isRetryable) {
           throw error;
         }
         
-        // Exponential backoff: 3s, 6s, 9s, 12s...
-        await new Promise((resolve) => setTimeout(resolve, attempts * 3000));
+        // Exponential backoff: 4s, 8s, 16s, 32s...
+        const delay = Math.pow(2, attempts) * 2000;
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
     throw new Error('Maximum retry attempts reached for disaster scenario generation.');

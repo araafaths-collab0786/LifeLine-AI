@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BrainCircuit, Loader2, MessageSquareQuote } from 'lucide-react';
 import { Observation, LogEntry } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
 
 interface DecisionExplainerProps {
   observation: Observation | null;
@@ -15,6 +16,7 @@ interface DecisionExplainerProps {
 export function DecisionExplainer({ observation, lastLog }: DecisionExplainerProps) {
   const [explanation, setExplanation] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleExplain = async () => {
     if (!observation || !lastLog) return;
@@ -25,8 +27,13 @@ export function DecisionExplainer({ observation, lastLog }: DecisionExplainerPro
         action: lastLog.action
       });
       setExplanation(result.explanation);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Analysis Error",
+        description: "AI service is currently unavailable or rate limited. Please try again shortly.",
+      });
     } finally {
       setIsLoading(false);
     }
