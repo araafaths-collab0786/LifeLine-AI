@@ -1,0 +1,40 @@
+name: lifeline-ai
+version: 1.0.0
+description: Intelligent Disaster Response Environment for Reinforcement Learning
+author: LifeLine AI Team
+tags:
+  - disaster-response
+  - resource-allocation
+  - medical-emergency
+  - multi-agent-potential
+license: MIT
+
+benchmarks:
+  - name: lifeline-v1
+    tasks:
+      - name: easy_commuter_accident
+        description: Single victim, abundant resources, short distance.
+        difficulty: easy
+      - name: medium_river_flood
+        description: Multiple victims, limited resources, rural context.
+        difficulty: medium
+      - name: hard_urban_earthquake
+        description: Large scale disaster, critical resources, high uncertainty.
+        difficulty: hard
+
+spec:
+  observation_space:
+    type: object
+    properties:
+      step: integer
+      victims: array
+      resources: object
+      cumulative_reward: number
+  action_space:
+    type: string
+    enum:
+      - dispatch_ambulance
+      - send_rescue_team
+      - notify_hospital
+      - wait
+  reward_range: [0.0, 1.0]
