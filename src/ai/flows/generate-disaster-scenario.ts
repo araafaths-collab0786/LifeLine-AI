@@ -63,6 +63,8 @@ const GenerateDisasterScenarioOutputSchema = z.object({
         estimatedInitialResponseTimeMinutes: z
           .number()
           .describe('Estimated initial time required for a first responder to reach the victim in minutes, considering obstacles.'),
+        x: z.number().min(0).max(100).describe('X coordinate on a 0-100 grid.'),
+        y: z.number().min(0).max(100).describe('Y coordinate on a 0-100 grid.'),
       })
     )
     .describe('An array of initial victim details.'),

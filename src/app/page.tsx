@@ -9,6 +9,7 @@ import { ScenarioEditor } from '@/components/ScenarioEditor';
 import { DecisionExplainer } from '@/components/DecisionExplainer';
 import { LogViewer } from '@/components/LogViewer';
 import { PerformanceDashboard } from '@/components/PerformanceDashboard';
+import { SpatialMap } from '@/components/SpatialMap';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -157,26 +158,7 @@ export default function Home() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="visual" className="mt-4">
-              <div className="aspect-video rounded-2xl border border-white/5 bg-black/40 relative overflow-hidden group">
-                <div className="absolute inset-0 grid grid-cols-[repeat(20,1fr)] grid-rows-[repeat(20,1fr)] opacity-10 pointer-events-none">
-                  {[...Array(400)].map((_, i) => (
-                    <div key={i} className="border-[0.5px] border-white/20" />
-                  ))}
-                </div>
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 bg-gradient-to-t from-black/80 to-transparent">
-                  <div className="w-20 h-20 rounded-3xl bg-primary/10 border border-primary/30 flex items-center justify-center mb-6 shadow-2xl shadow-primary/20 rotate-3 group-hover:rotate-0 transition-transform duration-500">
-                    <Zap className="w-10 h-10 text-primary" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-2">Spatial Intelligence Engine</h3>
-                  <p className="text-sm text-muted-foreground max-w-sm mb-6">
-                    Real-time spatial mapping of {observation?.victims.length} active agents in <strong>{currentScenario.geographicalContext}</strong> environment.
-                  </p>
-                  <div className="flex gap-3">
-                    <Badge variant="secondary" className="bg-white/5 border-white/10">3.2ms Latency</Badge>
-                    <Badge variant="secondary" className="bg-white/5 border-white/10">60 FPS Render</Badge>
-                  </div>
-                </div>
-              </div>
+              <SpatialMap observation={observation} />
             </TabsContent>
             <TabsContent value="inference" className="mt-4">
               <div className="rounded-xl border border-white/5 bg-[#0D0F12] p-6 shadow-2xl relative overflow-hidden group">

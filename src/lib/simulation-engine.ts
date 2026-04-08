@@ -80,7 +80,7 @@ export class LifeLineEnv {
     }
 
     // 5. Normalize Reward (0.0 to 1.0)
-    const stepReward = Math.max(0, Math.min(1, (rawReward + 0.5) / 1.5)); // Simple normalization for visualization
+    const stepReward = Math.max(0, Math.min(1, (rawReward + 0.5) / 1.5)); 
 
     return [obs, stepReward, this.isDone, { reason }];
   }
@@ -104,7 +104,7 @@ export class LifeLineEnv {
     victim.status = 'rescued';
     obs.resources.rescueTeamsAvailable -= 1;
 
-    return this.calculateResponseReward(victim) * 0.8; // Rescue team slightly less efficient than ambulance for direct medical
+    return this.calculateResponseReward(victim) * 0.8; 
   }
 
   private handleNotifyHospital(targetId: string | undefined, obs: Observation): number {
@@ -113,7 +113,6 @@ export class LifeLineEnv {
     const candidates = obs.victims.filter(v => v.status === 'in_transit' || v.status === 'rescued');
     if (candidates.length === 0) return -0.05;
 
-    // Pick the most critical one in transit
     const victim = candidates.sort((a, b) => {
         const severityOrder = { critical: 3, serious: 2, moderate: 1, minor: 0 };
         return severityOrder[b.severity] - severityOrder[a.severity];
@@ -123,8 +122,7 @@ export class LifeLineEnv {
     obs.resources.hospitalCapacityAvailable -= 1;
     victim.handledAtStep = obs.step;
 
-    // Return resources to pool (simplified logic)
-    obs.resources.ambulancesAvailable += 0.5; // Represents partial reuse over time
+    obs.resources.ambulancesAvailable += 0.5; 
     
     return 0.5 + (victim.severity === 'critical' ? 0.3 : 0.1);
   }
@@ -159,7 +157,7 @@ export const PRESET_SCENARIOS: Scenario[] = [
     geographicalContext: 'urban',
     specificChallenges: [],
     initialVictims: [
-      { id: 'v1', locationDescription: 'Main St Intersection', severity: 'moderate', distanceFromCommandCenterKm: 2, estimatedInitialResponseTimeMinutes: 5, status: 'waiting' }
+      { id: 'v1', locationDescription: 'Main St Intersection', severity: 'moderate', distanceFromCommandCenterKm: 2, estimatedInitialResponseTimeMinutes: 5, status: 'waiting', x: 45, y: 55 }
     ],
     initialResources: { ambulancesAvailable: 2, rescueTeamsAvailable: 1, hospitalCapacityAvailable: 10 },
     scenarioDescription: 'A minor traffic collision with one victim in a highly accessible urban area.'
@@ -172,9 +170,9 @@ export const PRESET_SCENARIOS: Scenario[] = [
     geographicalContext: 'rural',
     specificChallenges: ['difficult_terrain'],
     initialVictims: [
-      { id: 'v2', locationDescription: 'North Bridge', severity: 'serious', distanceFromCommandCenterKm: 12, estimatedInitialResponseTimeMinutes: 25, status: 'waiting' },
-      { id: 'v3', locationDescription: 'West Farm', severity: 'critical', distanceFromCommandCenterKm: 15, estimatedInitialResponseTimeMinutes: 30, status: 'waiting' },
-      { id: 'v4', locationDescription: 'Lowlands Rd', severity: 'moderate', distanceFromCommandCenterKm: 8, estimatedInitialResponseTimeMinutes: 15, status: 'waiting' }
+      { id: 'v2', locationDescription: 'North Bridge', severity: 'serious', distanceFromCommandCenterKm: 12, estimatedInitialResponseTimeMinutes: 25, status: 'waiting', x: 20, y: 30 },
+      { id: 'v3', locationDescription: 'West Farm', severity: 'critical', distanceFromCommandCenterKm: 15, estimatedInitialResponseTimeMinutes: 30, status: 'waiting', x: 80, y: 25 },
+      { id: 'v4', locationDescription: 'Lowlands Rd', severity: 'moderate', distanceFromCommandCenterKm: 8, estimatedInitialResponseTimeMinutes: 15, status: 'waiting', x: 50, y: 70 }
     ],
     initialResources: { ambulancesAvailable: 1, rescueTeamsAvailable: 2, hospitalCapacityAvailable: 5 },
     scenarioDescription: 'Localized flooding has stranded residents with limited ambulance access and difficult terrain.'
@@ -187,28 +185,13 @@ export const PRESET_SCENARIOS: Scenario[] = [
     geographicalContext: 'urban',
     specificChallenges: ['communication_blackout', 'collapsed_buildings'],
     initialVictims: [
-        { id: 'v5', locationDescription: 'Subway Station B', severity: 'critical', distanceFromCommandCenterKm: 4, estimatedInitialResponseTimeMinutes: 12, status: 'waiting' },
-        { id: 'v6', locationDescription: 'High Rise A', severity: 'critical', distanceFromCommandCenterKm: 7, estimatedInitialResponseTimeMinutes: 20, status: 'waiting' },
-        { id: 'v7', locationDescription: 'Park Plaza', severity: 'serious', distanceFromCommandCenterKm: 3, estimatedInitialResponseTimeMinutes: 8, status: 'waiting' },
-        { id: 'v8', locationDescription: 'Shopping Mall', severity: 'moderate', distanceFromCommandCenterKm: 10, estimatedInitialResponseTimeMinutes: 25, status: 'waiting' },
-        { id: 'v9', locationDescription: 'School District', severity: 'critical', distanceFromCommandCenterKm: 15, estimatedInitialResponseTimeMinutes: 40, status: 'waiting' }
+        { id: 'v5', locationDescription: 'Subway Station B', severity: 'critical', distanceFromCommandCenterKm: 4, estimatedInitialResponseTimeMinutes: 12, status: 'waiting', x: 30, y: 40 },
+        { id: 'v6', locationDescription: 'High Rise A', severity: 'critical', distanceFromCommandCenterKm: 7, estimatedInitialResponseTimeMinutes: 20, status: 'waiting', x: 60, y: 65 },
+        { id: 'v7', locationDescription: 'Park Plaza', severity: 'serious', distanceFromCommandCenterKm: 3, estimatedInitialResponseTimeMinutes: 8, status: 'waiting', x: 45, y: 30 },
+        { id: 'v8', locationDescription: 'Shopping Mall', severity: 'moderate', distanceFromCommandCenterKm: 10, estimatedInitialResponseTimeMinutes: 25, status: 'waiting', x: 70, y: 20 },
+        { id: 'v9', locationDescription: 'School District', severity: 'critical', distanceFromCommandCenterKm: 15, estimatedInitialResponseTimeMinutes: 40, status: 'waiting', x: 15, y: 85 }
     ],
     initialResources: { ambulancesAvailable: 2, rescueTeamsAvailable: 2, hospitalCapacityAvailable: 3 },
     scenarioDescription: 'Large scale earthquake in a dense urban zone. Resources are extremely scarce compared to casualties.'
   }
 ];
-
-export const getGraderScore = (observation: Observation): number => {
-    const total = observation.victims.length;
-    const saved = observation.victims.filter(v => v.status === 'hospitalized').length;
-    const deceased = observation.victims.filter(v => v.status === 'deceased').length;
-    
-    if (total === 0) return 0;
-    
-    // Efficiency metric: (Saved/Total) - (Penalty for deaths and long times)
-    const baseScore = saved / total;
-    const deathPenalty = (deceased / total) * 0.5;
-    const stepPenalty = (observation.step / 20) * 0.1;
-    
-    return Math.max(0, Math.min(1, baseScore - deathPenalty - stepPenalty));
-};

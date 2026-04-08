@@ -11,6 +11,8 @@ export interface Victim {
   estimatedInitialResponseTimeMinutes: number;
   status: VictimStatus;
   handledAtStep?: number;
+  x: number; // 0-100 coordinate
+  y: number; // 0-100 coordinate
 }
 
 export interface Resources {
