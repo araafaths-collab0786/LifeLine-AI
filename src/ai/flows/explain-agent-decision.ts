@@ -69,12 +69,14 @@ export async function explainAgentDecision(
       return output;
     } catch (error: any) {
       attempts++;
-      const errorMessage = error?.toString() || '';
+      const errorMessage = String(error).toLowerCase();
       const isRetryable = 
         errorMessage.includes('503') || 
-        errorMessage.includes('UNAVAILABLE') || 
+        errorMessage.includes('unavailable') || 
         errorMessage.includes('429') || 
-        errorMessage.includes('RESOURCE_EXHAUSTED') ||
+        errorMessage.includes('resource_exhausted') ||
+        errorMessage.includes('exhausted') ||
+        errorMessage.includes('requests') ||
         errorMessage.includes('high demand') ||
         errorMessage.includes('quota') ||
         errorMessage.includes('limit');
@@ -83,7 +85,7 @@ export async function explainAgentDecision(
         throw error;
       }
       
-      const delay = Math.pow(2, attempts) * 1500;
+      const delay = Math.pow(2, attempts) * 2000;
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }

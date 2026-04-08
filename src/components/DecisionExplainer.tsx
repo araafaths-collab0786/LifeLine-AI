@@ -29,7 +29,14 @@ export function DecisionExplainer({ observation, lastLog }: DecisionExplainerPro
       });
       setExplanation(result.explanation);
     } catch (error: any) {
-      const isQuotaError = error.toString().includes('429') || error.toString().includes('quota') || error.toString().includes('limit');
+      const errorString = String(error).toLowerCase();
+      const isQuotaError = 
+        errorString.includes('429') || 
+        errorString.includes('quota') || 
+        errorString.includes('limit') || 
+        errorString.includes('exhausted') ||
+        errorString.includes('requests');
+
       toast({
         variant: "destructive",
         title: isQuotaError ? "Quota Limit" : "Analysis Error",

@@ -111,12 +111,14 @@ export async function generateDisasterScenario(
       return output;
     } catch (error: any) {
       attempts++;
-      const errorMessage = error?.toString() || '';
+      const errorMessage = String(error).toLowerCase();
       const isRetryable = 
         errorMessage.includes('503') || 
-        errorMessage.includes('UNAVAILABLE') || 
+        errorMessage.includes('unavailable') || 
         errorMessage.includes('429') || 
-        errorMessage.includes('RESOURCE_EXHAUSTED') ||
+        errorMessage.includes('resource_exhausted') ||
+        errorMessage.includes('exhausted') ||
+        errorMessage.includes('requests') ||
         errorMessage.includes('high demand') ||
         errorMessage.includes('quota') ||
         errorMessage.includes('limit');
@@ -125,8 +127,7 @@ export async function generateDisasterScenario(
         throw error;
       }
       
-      // Patient exponential backoff: 3s, 6s, 12s, 24s...
-      const delay = Math.pow(2, attempts) * 1500;
+      const delay = Math.pow(2, attempts) * 2000;
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }

@@ -38,6 +38,7 @@ export function useSimulation() {
       timestamp: new Date().toLocaleTimeString()
     };
 
+    // Use a fresh copy to ensure React detects the change in the nested objects
     setObservation(JSON.parse(JSON.stringify(nextObs)));
     setLogs(prev => [newLog, ...prev]);
     setIsDone(done);
@@ -83,6 +84,7 @@ export function useSimulation() {
     
     if (isRunning && !isDone && observation) {
       interval = setInterval(() => {
+        // Always get the freshest observation state for the policy
         const action = getBaselineAction(observation);
         stepSimulation(action);
       }, 1500);
