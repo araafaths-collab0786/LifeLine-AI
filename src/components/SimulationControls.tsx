@@ -26,10 +26,15 @@ export function SimulationControls({
   if (!observation) return null;
 
   const handleAction = (type: ActionType) => {
+    // Human intervention: Pause auto-playback first
+    if (isRunning) {
+        onTogglePlay();
+    }
+
     // Pick highest priority victim for auto-manual assignment
     const candidates = [...observation.victims].sort((a, b) => {
         const severityOrder = { critical: 3, serious: 2, moderate: 1, minor: 0 };
-        return severityOrder[b.severity] - severityOrder[a.severity];
+        return (severityOrder[b.severity] || 0) - (severityOrder[a.severity] || 0);
     });
 
     const target = candidates.find(v => 
@@ -72,7 +77,7 @@ export function SimulationControls({
                         variant="secondary" 
                         size="sm"
                         className="gap-2 h-10 px-4 bg-white/5 border border-white/10 hover:bg-[#638FE9]/20 hover:border-[#638FE9]/50 transition-all group"
-                        disabled={isDone || isRunning || observation.resources.ambulancesAvailable <= 0}
+                        disabled={isDone || observation.resources.ambulancesAvailable <= 0}
                         onClick={() => handleAction('dispatch_ambulance')}
                     >
                         <Ambulance className="w-4 h-4 text-[#638FE9]" /> 
@@ -89,7 +94,7 @@ export function SimulationControls({
                         variant="secondary" 
                         size="sm"
                         className="gap-2 h-10 px-4 bg-white/5 border border-white/10 hover:bg-orange-500/20 hover:border-orange-500/50 transition-all group"
-                        disabled={isDone || isRunning || observation.resources.rescueTeamsAvailable <= 0}
+                        disabled={isDone || observation.resources.rescueTeamsAvailable <= 0}
                         onClick={() => handleAction('send_rescue_team')}
                     >
                         <Users className="w-4 h-4 text-orange-400" /> 
@@ -106,7 +111,7 @@ export function SimulationControls({
                         variant="secondary" 
                         size="sm"
                         className="gap-2 h-10 px-4 bg-white/5 border border-white/10 hover:bg-[#765EDD]/20 hover:border-[#765EDD]/50 transition-all group"
-                        disabled={isDone || isRunning || observation.resources.hospitalCapacityAvailable <= 0}
+                        disabled={isDone || observation.resources.hospitalCapacityAvailable <= 0}
                         onClick={() => handleAction('notify_hospital')}
                     >
                         <Building2 className="w-4 h-4 text-[#765EDD]" /> 

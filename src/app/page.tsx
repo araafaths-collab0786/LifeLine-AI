@@ -28,6 +28,33 @@ export default function Home() {
     setIsRunning
   } = useSimulation();
 
+  const handleOverride = () => {
+    if (!observation || isDone) return;
+    
+    // Stop auto-execution to prioritize human manual signal
+    setIsRunning(false);
+
+    // Heuristic: Dispatch to most critical waiting victim
+    const criticalVictim = [...observation.victims]
+      .filter(v => v.status === 'waiting')
+      .sort((a, b) => {
+        const order = { critical: 3, serious: 2, moderate: 1, minor: 0 };
+        return (order[b.severity] || 0) - (order[a.severity] || 0);
+      })[0];
+    
+    if (criticalVictim && observation.resources.ambulancesAvailable > 0) {
+      stepSimulation({ type: 'dispatch_ambulance', targetId: criticalVictim.id });
+    } else {
+      // Fallback: Notify hospital for someone in transit
+      const inTransit = observation.victims.find(v => v.status === 'in_transit' || v.status === 'rescued');
+      if (inTransit && observation.resources.hospitalCapacityAvailable > 0) {
+        stepSimulation({ type: 'notify_hospital', targetId: inTransit.id });
+      } else {
+        stepSimulation({ type: 'wait' });
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0F1115] text-[#F8F9FA] flex flex-col font-body selection:bg-[#638FE9]/30">
       {/* Precision Navigation Header */}
@@ -239,7 +266,13 @@ while not env.is_done():
              <p className="text-[11px] text-muted-foreground leading-relaxed px-4">
                Manual agent signals are prioritized over baseline policy execution.
              </p>
-             <Button variant="outline" size="sm" className="mt-4 w-full text-[10px] uppercase font-bold tracking-widest border-white/10 hover:bg-accent hover:text-white transition-all">
+             <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleOverride}
+                disabled={isDone}
+                className="mt-4 w-full text-[10px] uppercase font-bold tracking-widest border-white/10 hover:bg-accent hover:text-white transition-all"
+             >
                Override Baseline
              </Button>
           </div>
